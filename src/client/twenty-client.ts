@@ -99,7 +99,7 @@ export class TwentyClient {
 
   async updatePerson(id: string, updates: Partial<Person>): Promise<Person> {
     const mutation = `
-      mutation UpdatePerson($id: ID!, $data: PersonUpdateInput!) {
+      mutation UpdatePerson($id: UUID!, $data: PersonUpdateInput!) {
         updatePerson(id: $id, data: $data) {
           id
           name {
@@ -261,7 +261,7 @@ export class TwentyClient {
 
   async updateCompany(id: string, updates: Partial<Company>): Promise<Company> {
     const mutation = `
-      mutation UpdateCompany($id: ID!, $data: CompanyUpdateInput!) {
+      mutation UpdateCompany($id: UUID!, $data: CompanyUpdateInput!) {
         updateCompany(id: $id, data: $data) {
           id
           name
@@ -462,7 +462,7 @@ export class TwentyClient {
   async updateOpportunity(input: UpdateOpportunityInput): Promise<Opportunity> {
     const { id, ...data } = input;
     const mutation = `
-      mutation UpdateOpportunity($id: ID!, $data: OpportunityUpdateInput!) {
+      mutation UpdateOpportunity($id: UUID!, $data: OpportunityUpdateInput!) {
         updateOpportunity(id: $id, data: $data) {
           id
           name
@@ -1106,7 +1106,7 @@ export class TwentyClient {
 
   async linkOpportunityToCompany(input: LinkOpportunityInput): Promise<any> {
     const mutation = `
-      mutation LinkOpportunity($id: String!, $data: OpportunityUpdateInput!) {
+      mutation LinkOpportunity($id: UUID!, $data: OpportunityUpdateInput!) {
         updateOpportunity(id: $id, data: $data) {
           id
           name
@@ -1141,7 +1141,7 @@ export class TwentyClient {
 
   async transferContactToCompany(input: TransferContactInput): Promise<any> {
     const mutation = `
-      mutation TransferContact($id: String!, $data: PersonUpdateInput!) {
+      mutation TransferContact($id: UUID!, $data: PersonUpdateInput!) {
         updatePerson(id: $id, data: $data) {
           id
           name {
