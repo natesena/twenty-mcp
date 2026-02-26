@@ -105,7 +105,28 @@ export function registerPersonTools(server: McpServer, client: TwentyClient) {
     },
     async (args) => {
     try {
-      const { id, ...updates } = args;
+      const { id, ...flat } = args;
+      // Transform flat input to Twenty's nested structure (same as create_contact)
+      const updates: any = {};
+      if (flat.firstName !== undefined || flat.lastName !== undefined) {
+        updates.name = {
+          ...(flat.firstName !== undefined && { firstName: flat.firstName }),
+          ...(flat.lastName !== undefined && { lastName: flat.lastName }),
+        };
+      }
+      if (flat.email !== undefined) {
+        updates.emails = { primaryEmail: flat.email };
+      }
+      if (flat.phone !== undefined) {
+        updates.phones = { primaryPhoneNumber: flat.phone };
+      }
+      if (flat.companyId !== undefined) updates.companyId = flat.companyId;
+      if (flat.jobTitle !== undefined) updates.jobTitle = flat.jobTitle;
+      if (flat.linkedinUrl !== undefined) {
+        updates.linkedinLink = { primaryLinkUrl: flat.linkedinUrl };
+      }
+      if (flat.city !== undefined) updates.city = flat.city;
+
       const person = await client.updatePerson(id, updates);
       return {
         content: [{
@@ -287,7 +308,7 @@ export function registerCompanyTools(server: McpServer, client: TwentyClient) {
             primaryLinkUrl: updateData.xUrl,
           },
         }),
-        ...(updateData.annualRecurringRevenue && {
+        ...(updateData.annualRecurringRevenue !== undefined && {
           annualRecurringRevenue: {
             amountMicros: updateData.annualRecurringRevenue * 1000000,
             currencyCode: 'USD',
@@ -350,14 +371,19 @@ export function registerTaskTools(server: McpServer, client: TwentyClient) {
     'Create a new task in Twenty CRM',
     {
       title: z.string().describe('Task title'),
-      body: z.string().optional().describe('Task description'),
+      body: z.string().optional().describe('Task description (markdown)'),
       dueAt: z.string().optional().describe('Due date (ISO 8601 format)'),
       status: z.enum(['TODO', 'IN_PROGRESS', 'DONE']).optional().default('TODO').describe('Task status'),
       assigneeId: z.string().optional().describe('ID of the person assigned to the task'),
     },
     async (args) => {
     try {
-      const task = await client.createTask(args);
+      const { body, ...rest } = args;
+      const taskData: any = { ...rest };
+      if (body) {
+        taskData.bodyV2 = { markdown: body };
+      }
+      const task = await client.createTask(taskData);
       return {
         content: [{
           type: 'text' as const,
@@ -408,12 +434,16 @@ export function registerTaskTools(server: McpServer, client: TwentyClient) {
     'Create a new note in Twenty CRM',
     {
       title: z.string().optional().describe('Note title'),
-      body: z.string().describe('Note content'),
-      authorId: z.string().optional().describe('ID of the note author'),
+      body: z.string().describe('Note content (markdown)'),
     },
     async (args) => {
     try {
-      const note = await client.createNote(args);
+      const noteData: any = {};
+      if (args.title) noteData.title = args.title;
+      if (args.body) {
+        noteData.bodyV2 = { markdown: args.body };
+      }
+      const note = await client.createNote(noteData);
       return {
         content: [{
           type: 'text' as const,

@@ -12,7 +12,7 @@ export function registerOpportunityTools(server: McpServer, client: TwentyClient
         value: z.number().describe('Amount in currency units (e.g., 1000.50 for $1,000.50)'),
         currency: z.string().default('USD').describe('Currency code (e.g., USD, EUR)')
       }).optional().describe('Deal amount'),
-      stage: z.string().optional().describe('Sales stage (e.g., NEW, SCREENING, MEETING, PROPOSAL, CUSTOMER)'),
+      stage: z.enum(['NEW', 'SCREENING', 'MEETING', 'PROPOSAL', 'CUSTOMER']).optional().describe('Sales stage'),
       closeDate: z.string().optional().describe('Expected close date (ISO 8601 format)'),
       companyId: z.string().optional().describe('ID of associated company'),
       pointOfContactId: z.string().optional().describe('ID of main contact person')
@@ -162,7 +162,7 @@ Contact ID: ${opportunity.pointOfContactId || 'None'}`
     'Search for opportunities in Twenty CRM with various filters',
     {
       query: z.string().optional().describe('Search query for opportunity name'),
-      stage: z.string().optional().describe('Filter by specific stage'),
+      stage: z.enum(['NEW', 'SCREENING', 'MEETING', 'PROPOSAL', 'CUSTOMER']).optional().describe('Filter by specific stage'),
       minAmount: z.number().optional().describe('Minimum deal amount'),
       maxAmount: z.number().optional().describe('Maximum deal amount'),
       startDate: z.string().optional().describe('Start date for close date range (ISO 8601)'),

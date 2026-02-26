@@ -64,22 +64,22 @@ ${timeline.hasMore ? 'Use offset parameter to load more activities.' : 'No more 
     'filter_activities',
     'Filter activities by specific criteria',
     {
-      type: z.array(z.enum(['task', 'note'])).optional().describe('Activity types to include'),
+      type: z.string().optional().describe('Activity type to filter: "task" or "note"'),
       dateFrom: z.string().optional().describe('Start date (ISO 8601 format)'),
       dateTo: z.string().optional().describe('End date (ISO 8601 format)'),
       authorId: z.string().optional().describe('Filter by author/assignee ID'),
-      status: z.array(z.string()).optional().describe('Task status filter (for tasks only)'),
+      status: z.string().optional().describe('Task status filter: TODO, IN_PROGRESS, or DONE'),
       limit: z.number().optional().default(20).describe('Maximum number of results'),
       offset: z.number().optional().default(0).describe('Number of results to skip'),
     },
     async (args) => {
       try {
         const activities = await client.filterActivities({
-          type: args.type,
+          type: args.type ? [args.type as 'task' | 'note'] : undefined,
           dateFrom: args.dateFrom,
           dateTo: args.dateTo,
           authorId: args.authorId,
-          status: args.status,
+          status: args.status ? [args.status] : undefined,
           limit: args.limit,
           offset: args.offset,
         });
@@ -125,35 +125,21 @@ ${resultsText}`
 
   server.tool(
     'create_comment',
-    'Create a comment on any CRM record',
+    'Create a comment/note in CRM',
     {
-      body: z.string().describe('Comment content'),
-      authorId: z.string().optional().describe('ID of the comment author'),
-      activityTargetId: z.string().optional().describe('ID of the activity target (if linking to specific record)'),
-      targetObjectId: z.string().optional().describe('ID of the target object (person, company, opportunity)'),
-      targetObjectType: z.enum(['person', 'company', 'opportunity']).optional().describe('Type of target object'),
+      body: z.string().describe('Comment content (markdown)'),
+      title: z.string().optional().describe('Optional title for the note'),
     },
     async (args) => {
       try {
         const comment = await client.createComment({
           body: args.body,
-          authorId: args.authorId,
-          activityTargetId: args.activityTargetId,
-          targetObjectId: args.targetObjectId,
-          targetObjectNameSingular: args.targetObjectType,
         });
-
-        const authorName = comment.author 
-          ? `${comment.author.name.firstName} ${comment.author.name.lastName}`
-          : 'Unknown';
 
         return {
           content: [{
             type: 'text' as const,
-            text: `Comment created successfully by ${authorName} (ID: ${comment.id})
-
-Content: ${comment.body}
-Created: ${new Date(comment.createdAt).toLocaleString()}`
+            text: `Note created successfully (ID: ${comment.id})\n\nContent: ${comment.body}\nCreated: ${new Date(comment.createdAt).toLocaleString()}`
           }]
         };
       } catch (error) {
